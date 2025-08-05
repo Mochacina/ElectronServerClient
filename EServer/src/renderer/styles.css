@@ -103,3 +103,152 @@ button:disabled {
   bottom: 0;
   width: 100%;
 }
+.session-list-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+#session-list-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed; /* 컬럼 너비 고정 */
+}
+
+#session-list-table thead {
+  background-color: #333;
+}
+
+#session-list-table th,
+#session-list-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#session-list-table th {
+  color: var(--text-color-light);
+  font-weight: bold;
+}
+
+#session-list-table tbody tr:hover {
+  background-color: #2a2d2e;
+}
+
+#session-list-table tbody tr.status-connected {
+  color: #89d185; /* Success color */
+}
+
+#session-list-table tbody tr.status-disconnected {
+  color: #f48771; /* Warning color */
+}
+.main-content {
+  display: flex;
+}
+
+.session-list-container {
+  width: 40%;
+  border-right: 1px solid var(--border-color);
+  padding-right: 10px;
+  overflow-y: auto;
+}
+
+.session-detail-container {
+  width: 60%;
+  padding-left: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.session-detail-container .placeholder {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: #666;
+}
+
+.hidden {
+  display: none !important;
+}
+
+#session-detail-view {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-info {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 10px;
+}
+
+.data-log-container {
+  flex-grow: 1;
+  background-color: #111;
+  border-radius: 4px;
+  padding: 10px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+}
+
+#data-log {
+  margin: 0;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.9em;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.data-log-container .log-outgoing {
+  color: #89d185; /* Success color */
+}
+
+.data-log-container .log-incoming {
+  color: #9cdcfe; /* A nice blue */
+}
+
+.data-send-container {
+  display: flex;
+  flex-direction: column;
+  height: 150px; /* 고정 높이 */
+}
+
+#data-input {
+  flex-grow: 1;
+  background-color: #111;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  border-radius: 4px;
+  padding: 10px;
+  resize: none; /* 리사이즈 비활성화 */
+  margin-bottom: 10px;
+}
+
+.send-controls {
+  display: flex;
+}
+
+.send-controls select {
+  width: 100px;
+  margin-right: 10px;
+}
+
+.send-controls button {
+  flex-grow: 1;
+}
+.detail-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.small-btn {
+  width: auto;
+  padding: 5px 10px;
+  font-size: 0.8em;
+}

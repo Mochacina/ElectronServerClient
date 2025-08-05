@@ -1,15 +1,18 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
-const net = require('net');
 const path = require('path');
+const net = require('net');
+const dgram = require('dgram');
 
 // 디버깅: main.js 로드 확인
 console.log('main.js loaded');
+
+let mainWindow;
 
 function createWindow() {
   // 디버깅: createWindow 함수 호출 확인
   console.log('Creating main window...');
 
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     webPreferences: {
@@ -29,6 +32,7 @@ function createWindow() {
   mainWindow.on('closed', () => {
     // 디버깅: 윈도우 종료 이벤트 확인
     console.log('Main window closed');
+    mainWindow = null;
   });
 }
 
@@ -38,7 +42,6 @@ app.whenReady().then(() => {
   createWindow();
 
   app.on('activate', () => {
-    // macOS에서 독 아이콘을 클릭했을 때 창이 없으면 새로 생성하는 로직
     if (BrowserWindow.getAllWindows().length === 0) {
       console.log('App activated, creating window.');
       createWindow();
@@ -47,70 +50,168 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
-  // 모든 윈도우가 닫혔을 때 앱을 종료 (macOS 제외)
   if (process.platform !== 'darwin') {
     console.log('All windows closed, quitting app.');
     app.quit();
   }
 });
 
-// --- IPC Handlers ---
+// --- IPC Handlers & Server Logic ---
 let server;
-let sockets = [];
+let serverType = null; // 'tcp' or 'udp'
+const sessions = new Map();
+
+function updateSessionList() {
+  if (mainWindow) {
+    const sessionList = Array.from(sessions.values()).map(s => ({
+      id: s.id,
+      status: s.status,
+      connectedTime: s.connectedTime,
+      rx: s.rx,
+      tx: s.tx,
+    }));
+    console.log('main: sending update-session-list', sessionList);
+    mainWindow.webContents.send('update-session-list', sessionList);
+  }
+}
+
+function sendLog(log) {
+    if (mainWindow) {
+        console.log('main: sending data-log', log);
+        mainWindow.webContents.send('data-log', log);
+    }
+}
 
 ipcMain.on('start-server', (event, options) => {
   console.log('main: received start-server', options);
-  if (server && server.listening) {
+  if (server) {
     console.log('main: Server is already running.');
     return;
   }
 
-  server = net.createServer((socket) => {
-    const socketId = `${socket.remoteAddress}:${socket.remotePort}`;
-    sockets.push(socket);
-    console.log(`main: Client connected: ${socketId}`);
-    
-    // 클라이언트 연결 상태를 렌더러로 전송
-    event.sender.send('server-status', { message: `Client connected: ${socketId}` });
+  serverType = options.protocol.toLowerCase();
 
-    socket.on('data', (data) => {
-      console.log(`main: Received data from ${socketId}: ${data.toString()}`);
-      // 데이터 수신 상태를 렌더러로 전송
-      event.sender.send('server-status', { message: `Data from ${socketId}: ${data.length} bytes` });
-    });
+  if (serverType === 'tcp') {
+    server = net.createServer((socket) => {
+      const socketId = `${socket.remoteAddress}:${socket.remotePort}`;
+      const session = {
+        socket,
+        id: socketId,
+        connectedTime: new Date().toISOString(),
+        status: 'connected',
+        rx: 0,
+        tx: 0,
+      };
+      sessions.set(socketId, session);
+      console.log(`main: Client connected: ${socketId}`);
+      
+      event.sender.send('server-status', { message: `Client connected: ${socketId}` });
+      updateSessionList();
 
-    socket.on('close', () => {
-      sockets = sockets.filter(s => s !== socket);
-      console.log(`main: Client disconnected: ${socketId}`);
-      event.sender.send('server-status', { message: `Client disconnected: ${socketId}` });
-    });
+      socket.on('data', (data) => {
+        session.rx += data.length;
+        console.log(`main: Received ${data.length} bytes from ${socketId}`);
+        sendLog({ sessionId: socketId, direction: 'incoming', data: data.toString('hex'), timestamp: new Date().toISOString() });
+        updateSessionList();
+      });
 
-    socket.on('error', (err) => {
-      console.error(`main: Socket error from ${socketId}:`, err);
-      event.sender.send('server-status', { message: `Socket Error: ${err.message}` });
+      socket.on('close', () => {
+        session.status = 'disconnected';
+        console.log(`main: Client disconnected: ${socketId}`);
+        setTimeout(() => sessions.delete(socketId), 5000);
+        updateSessionList();
+      });
+
+      socket.on('error', (err) => {
+        session.status = 'error';
+        console.error(`main: Socket error from ${socketId}:`, err);
+        updateSessionList();
+      });
     });
-  });
+  } else if (serverType === 'udp') {
+    server = dgram.createSocket('udp4');
+
+    server.on('message', (msg, rinfo) => {
+      const socketId = `${rinfo.address}:${rinfo.port}`;
+      let session = sessions.get(socketId);
+      if (!session) {
+        session = {
+          id: socketId,
+          rinfo: rinfo, // UDP는 rinfo로 응답해야 해
+          connectedTime: new Date().toISOString(),
+          status: 'active',
+          rx: 0,
+          tx: 0,
+        };
+        sessions.set(socketId, session);
+        console.log(`main: New UDP peer: ${socketId}`);
+      }
+      session.rx += msg.length;
+      session.lastActivity = new Date().toISOString();
+      
+      console.log(`main: Received ${msg.length} UDP bytes from ${socketId}`);
+      sendLog({ sessionId: socketId, direction: 'incoming', data: msg.toString('hex'), timestamp: new Date().toISOString() });
+      updateSessionList();
+    });
+  }
 
   server.on('error', (err) => {
     console.error('main: Server error:', err);
-    event.sender.send('server-status', { message: `Server Error: ${err.message}` });
+    event.sender.send('server-status', { message: `Server Error: ${err.message}`, listening: false });
+    server.close();
+    server = null;
   });
 
-  server.listen(options.port, '0.0.0.0', () => {
-    console.log(`main: TCP Server listening on port ${options.port}`);
-    event.sender.send('server-status', { message: `Server listening on port ${options.port}`, listening: true });
-  });
+  if (serverType === 'tcp') {
+    server.listen(options.port, '0.0.0.0', () => {
+      console.log(`main: TCP Server listening on port ${options.port}`);
+      event.sender.send('server-status', { message: `TCP Server listening on port ${options.port}`, listening: true });
+    });
+  } else if (serverType === 'udp') {
+    server.bind(options.port, () => {
+      console.log(`main: UDP Server listening on port ${options.port}`);
+      event.sender.send('server-status', { message: `UDP Server listening on port ${options.port}`, listening: true });
+    });
+  }
 });
 
 ipcMain.on('stop-server', (event) => {
   console.log('main: received stop-server');
-  sockets.forEach(socket => socket.destroy());
-  sockets = [];
+  if (serverType === 'tcp') {
+    sessions.forEach(session => session.socket.destroy());
+  }
+  sessions.clear();
+  
   if (server) {
     server.close(() => {
-      console.log('main: Server stopped.');
+      console.log(`main: ${serverType.toUpperCase()} Server stopped.`);
       event.sender.send('server-status', { message: 'Server stopped', listening: false });
+      updateSessionList();
       server = null;
+      serverType = null;
     });
   }
+});
+
+ipcMain.on('send-data', (event, { sessionId, data, encoding }) => {
+    const session = sessions.get(sessionId);
+    if (!session) return;
+
+    try {
+        const buffer = Buffer.from(data, encoding);
+        if (serverType === 'tcp' && session.socket) {
+            session.socket.write(buffer);
+        } else if (serverType === 'udp' && server) {
+            server.send(buffer, session.rinfo.port, session.rinfo.address, (err) => {
+                if (err) throw err;
+            });
+        }
+        session.tx += buffer.length;
+        console.log(`main: Sent ${buffer.length} bytes to ${sessionId}`);
+        sendLog({ sessionId: sessionId, direction: 'outgoing', data: buffer.toString('hex'), timestamp: new Date().toISOString() });
+        updateSessionList();
+    } catch (error) {
+        console.error('main: Error sending data:', error);
+        sendLog({ sessionId: sessionId, direction: 'error', data: `Error sending data: ${error.message}`, timestamp: new Date().toISOString() });
+    }
 });

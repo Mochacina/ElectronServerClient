@@ -15,7 +15,7 @@
           <label for="protocol-select">Protocol:</label>
           <select id="protocol-select">
             <option value="TCP">TCP</option>
-            <option value="UDP" disabled>UDP (coming soon!)</option>
+            <option value="UDP">UDP</option>
             <option value="WebSocket" disabled>WebSocket (coming soon!)</option>
           </select>
         </div>
@@ -28,8 +28,48 @@
       </div>
     </div>
     <div class="main-content">
-      <h1>Welcome to Helena's Awesome Network Test Server!</h1>
-      <p>Hmph! It's just a piece of cake for a genius like me!</p>
+      <div class="session-list-container">
+        <h2>Active Sessions</h2>
+        <table id="session-list-table">
+          <thead>
+            <tr>
+              <th>Session ID</th>
+              <th>Status</th>
+              <th>Connected Time</th>
+              <th>Rx/Tx Bytes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Session rows will be inserted here -->
+          </tbody>
+        </table>
+      </div>
+      <div class="session-detail-container">
+        <h2>Session Detail</h2>
+        <div id="session-detail-content" class="placeholder">
+          <p>Select a session to see details.</p>
+        </div>
+        <div id="session-detail-view" class="hidden">
+          <div class="detail-info">
+            <strong>ID:</strong> <span id="detail-session-id"></span>
+            <button id="export-log-btn" class="small-btn">Export Log</button>
+          </div>
+          <div class="data-log-container">
+            <pre id="data-log"></pre>
+          </div>
+          <div class="data-send-container">
+            <textarea id="data-input" placeholder="Enter data to send..."></textarea>
+            <div class="send-controls">
+              <select id="encoding-select">
+                <option value="utf8">UTF-8</option>
+                <option value="hex">Hex</option>
+                <option value="base64">Base64</option>
+              </select>
+              <button id="send-data-btn">Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
   <div class="status-bar">
@@ -37,10 +77,6 @@
     <span id="session-count">Sessions: 0</span>
   </div>
 
-  <!-- 디버깅: 렌더러 스크립트 로드 확인 -->
-  <script>
-    console.log('index.html loaded. Loading renderer.js...');
-  </script>
   <script src="renderer.js"></script>
 </body>
 </html>
