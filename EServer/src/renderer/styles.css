@@ -81,8 +81,7 @@ body, html {
   border-radius: 0;
   border-top-left-radius: 8px;
   border-bottom-left-radius: 8px;
-  border-top-right-radius: 8px;
-  border-bottom-right-radius: 8px;
+  /* 왼쪽 모서리는 둥글지 않게 유지하여 D 형태 보존 */
 }
 
 .sidebar-header {
@@ -143,6 +142,12 @@ body, html {
     display: flex;
     padding: 20px;
     overflow: hidden;
+    transition: margin-left 0.3s ease; /* 부드러운 여백 전환 */
+}
+
+/* 사이드바가 접혔을 때 메인 콘텐츠에 여백 추가 */
+.sidebar.folded + .resizer + .main-content-wrapper {
+    margin-left: 5px; /* 버튼 너비와 동일 */
 }
 
 .session-list-container {
