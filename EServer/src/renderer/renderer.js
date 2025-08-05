@@ -1,4 +1,3 @@
-/* renderer.js */
 // 디버깅: renderer.js 로드 및 실행 확인
 console.log("Yes! I am the one and only Helena's renderer.js!");
 console.log('Renderer process is running.');
@@ -10,7 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log('DOM fully loaded and parsed');
 
   // --- Element Selectors ---
-  const root = document.documentElement;
   const sidebar = document.querySelector('.sidebar');
   const resizer = document.getElementById('resizer');
   const foldBtn = document.getElementById('sidebar-fold-btn');
@@ -76,16 +74,17 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function handleMouseMove(e) {
-    if (sidebar.classList.contains('folded')) return;
     const newWidth = e.clientX;
+    // 사이드바가 접혀있을 때는 리사이즈 안함
+    if (sidebar.classList.contains('folded')) return;
+    
     if (newWidth >= 150 && newWidth < 500) {
-      root.style.setProperty('--sidebar-width', `${newWidth}px`);
+      sidebar.style.width = `${newWidth}px`;
     }
   }
 
   foldBtn.addEventListener('click', () => {
-    const isFolded = sidebar.classList.toggle('folded');
-    foldBtn.textContent = isFolded ? '▶' : '◀';
+    sidebar.classList.toggle('folded');
   });
 
   // --- IPC Handlers ---
@@ -139,6 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     selectedSessionId = session.id;
                     updateDetailView(true);
                 }
+                // Re-render to update selection style
                 const currentSessions = Array.from(sessions);
                 window.api.onSessionUpdate(currentSessions);
             });
