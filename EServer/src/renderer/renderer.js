@@ -1,3 +1,5 @@
+// renderer.js
+
 // 디버깅: renderer.js 로드 및 실행 확인
 console.log("Yes! I am the one and only Helena's renderer.js!");
 console.log('Renderer process is running.');
@@ -24,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   const sessionDetailContainer = document.querySelector('.session-detail-container');
   const detailSessionId = document.getElementById('detail-session-id');
+  const detailSessionStats = document.getElementById('detail-session-stats');
   const dataLog = document.getElementById('data-log');
   const dataInput = document.getElementById('data-input');
   const encodingSelect = document.getElementById('encoding-select');
@@ -131,16 +134,24 @@ document.addEventListener('DOMContentLoaded', () => {
             row.insertCell().textContent = `${session.rx} / ${session.tx}`;
 
             row.addEventListener('click', () => {
+                const isNewSelection = selectedSessionId !== session.id;
+                const previouslySelected = sessionTableBody.querySelector('.selected');
+                if (previouslySelected) {
+                    previouslySelected.classList.remove('selected');
+                }
+
                 if (selectedSessionId === session.id) {
                     selectedSessionId = null;
                     updateDetailView(false);
                 } else {
+                    // 새로운 세션을 선택한 경우에만 로그를 지운다.
+                    if (isNewSelection) {
+                        dataLog.innerHTML = '';
+                    }
                     selectedSessionId = session.id;
-                    updateDetailView(true);
+                    row.classList.add('selected');
+                    updateDetailView(true, { stats: { rx: session.rx, tx: session.tx } });
                 }
-                // Re-render to update selection style
-                const currentSessions = Array.from(sessions);
-                window.api.onSessionUpdate(currentSessions);
             });
         });
     }
@@ -155,14 +166,16 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   window.api.onDataLog((log) => {
+    // 디버깅: 로그 데이터와 현재 선택된 세션 ID 확인
+    console.log(`onDataLog received: log.sessionId=${log.sessionId}, selectedSessionId=${selectedSessionId}`);
     if (log.sessionId === selectedSessionId) {
+        console.log('Appending log to dataLog element');
         const logEntry = document.createElement('div');
         const timestamp = new Date(log.timestamp).toLocaleTimeString();
         logEntry.className = `log-${log.direction}`;
         
-        const buffer = Buffer.from(log.data, 'hex');
-        const decodedData = buffer.toString('utf8');
-        const printableData = decodedData.replace(/[\x00-\x1F\x7F-\x9F]/g, '.');
+        // main에서 이미 utf8로 보내주므로 Buffer를 사용할 필요가 없다.
+        const printableData = log.data.replace(/[\x00-\x1F\x7F-\x9F]/g, '.');
 
         logEntry.textContent = `[${timestamp}] [${log.direction.toUpperCase()}] ${printableData}`;
         dataLog.appendChild(logEntry);
@@ -170,13 +183,40 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  window.api.onUpdateSessionStats((stats) => {
+    const sessionRow = sessionTableBody.querySelector(`tr[data-session-id="${stats.id}"]`);
+    if (sessionRow) {
+      // RX/TX 셀은 4번째(인덱스 3) 셀이야.
+      const statsCell = sessionRow.cells[3];
+      if (statsCell) {
+        statsCell.textContent = `${stats.rx} / ${stats.tx}`;
+      }
+    }
+    // 상세 뷰의 통계도 업데이트
+    if (stats.id === selectedSessionId) {
+      detailSessionStats.textContent = `${stats.rx} / ${stats.tx}`;
+    }
+  });
+
   // --- UI Update Functions ---
-  function updateDetailView(show) {
+  function updateDetailView(show, options = {}) {
+    const { stats = null } = options;
     if (show) {
         mainContentWrapper.classList.add('detail-view-active');
         sessionDetailContainer.classList.remove('hidden');
         detailSessionId.textContent = selectedSessionId;
-        dataLog.innerHTML = '';
+        
+        if (stats) {
+          detailSessionStats.textContent = `${stats.rx} / ${stats.tx}`;
+        } else {
+          // stats가 없으면 테이블에서 직접 찾아서 설정
+          const sessionRow = sessionTableBody.querySelector(`tr[data-session-id="${selectedSessionId}"]`);
+          if (sessionRow && sessionRow.cells[3]) {
+            detailSessionStats.textContent = sessionRow.cells[3].textContent;
+          } else {
+            detailSessionStats.textContent = '0 / 0'; // 최후의 보루
+          }
+        }
     } else {
         mainContentWrapper.classList.remove('detail-view-active');
         sessionDetailContainer.classList.add('hidden');

@@ -111,8 +111,12 @@ ipcMain.on('start-server', (event, options) => {
       socket.on('data', (data) => {
         session.rx += data.length;
         console.log(`main: Received ${data.length} bytes from ${socketId}`);
-        sendLog({ sessionId: socketId, direction: 'incoming', data: data.toString('hex'), timestamp: new Date().toISOString() });
-        updateSessionList();
+        // hex 대신 utf8로 디코딩해서 보낸다.
+        sendLog({ sessionId: socketId, direction: 'incoming', data: data.toString('utf8'), timestamp: new Date().toISOString() });
+        // RX/TX 값만 업데이트하는 새 이벤트를 보낸다.
+        if (mainWindow) {
+            mainWindow.webContents.send('update-session-stats', { id: socketId, rx: session.rx, tx: session.tx });
+        }
       });
 
       socket.on('close', () => {
@@ -150,8 +154,12 @@ ipcMain.on('start-server', (event, options) => {
       session.lastActivity = new Date().toISOString();
       
       console.log(`main: Received ${msg.length} UDP bytes from ${socketId}`);
-      sendLog({ sessionId: socketId, direction: 'incoming', data: msg.toString('hex'), timestamp: new Date().toISOString() });
-      updateSessionList();
+      // hex 대신 utf8로 디코딩해서 보낸다.
+      sendLog({ sessionId: socketId, direction: 'incoming', data: msg.toString('utf8'), timestamp: new Date().toISOString() });
+      // RX/TX 값만 업데이트하는 새 이벤트를 보낸다.
+      if (mainWindow) {
+          mainWindow.webContents.send('update-session-stats', { id: socketId, rx: session.rx, tx: session.tx });
+      }
     });
   }
 
@@ -208,8 +216,12 @@ ipcMain.on('send-data', (event, { sessionId, data, encoding }) => {
         }
         session.tx += buffer.length;
         console.log(`main: Sent ${buffer.length} bytes to ${sessionId}`);
-        sendLog({ sessionId: sessionId, direction: 'outgoing', data: buffer.toString('hex'), timestamp: new Date().toISOString() });
-        updateSessionList();
+        // hex 대신 utf8로 디코딩해서 보낸다.
+        sendLog({ sessionId: sessionId, direction: 'outgoing', data: data, timestamp: new Date().toISOString() });
+        // RX/TX 값만 업데이트하는 새 이벤트를 보낸다.
+        if (mainWindow) {
+            mainWindow.webContents.send('update-session-stats', { id: sessionId, rx: session.rx, tx: session.tx });
+        }
     } catch (error) {
         console.error('main: Error sending data:', error);
         sendLog({ sessionId: sessionId, direction: 'error', data: `Error sending data: ${error.message}`, timestamp: new Date().toISOString() });

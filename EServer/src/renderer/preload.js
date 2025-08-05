@@ -35,10 +35,15 @@ contextBridge.exposeInMainWorld('api', {
     console.log('preload: setting up onDataLog listener');
     ipcRenderer.on('data-log', (_event, log) => callback(log));
   },
+  onUpdateSessionStats: (callback) => {
+    console.log('preload: setting up onUpdateSessionStats listener');
+    ipcRenderer.on('update-session-stats', (_event, stats) => callback(stats));
+  },
   // 리스너 제거 함수도 만들어주는게 좋아!
   removeEventListeners: () => {
     ipcRenderer.removeAllListeners('server-status');
     ipcRenderer.removeAllListeners('update-session-list');
     ipcRenderer.removeAllListeners('data-log');
+    ipcRenderer.removeAllListeners('update-session-stats');
   }
 });
