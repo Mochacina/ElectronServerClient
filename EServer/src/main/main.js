@@ -226,7 +226,16 @@ ipcMain.on('send-data', (event, { sessionId, data, encoding }) => {
         console.error('main: Error sending data:', error);
         sendLog({ sessionId: sessionId, direction: 'error', data: `Error sending data: ${error.message}`, timestamp: new Date().toISOString() });
     }
-});
+  });
+  
+  ipcMain.on('disconnect-session', (event, sessionId) => {
+    console.log(`main: received disconnect-session for ${sessionId}`);
+    const session = sessions.get(sessionId);
+    if (session && session.socket) {
+      session.socket.destroy(); // 소켓을 강제로 종료시킨다.
+      console.log(`main: Session ${sessionId} destroyed by server.`);
+    }
+  });
 
 ipcMain.on('export-log', async (event, { sessionId, logContent }) => {
   console.log(`main: received export-log for ${sessionId}`);

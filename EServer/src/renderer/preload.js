@@ -21,6 +21,10 @@ contextBridge.exposeInMainWorld('api', {
     console.log(`preload: sending export-log for ${sessionId}`);
     ipcRenderer.send('export-log', { sessionId, logContent });
   },
+  disconnectSession: (sessionId) => {
+    console.log(`preload: sending disconnect-session for ${sessionId}`);
+    ipcRenderer.send('disconnect-session', sessionId);
+  },
 
   // Main -> Renderer
   onServerStatus: (callback) => {

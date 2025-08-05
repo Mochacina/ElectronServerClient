@@ -93,18 +93,21 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- IPC Handlers ---
   window.api.onServerStatus((status) => {
     serverStatus.textContent = `Status: ${status.message}`;
-    if (status.listening) {
-      startBtn.disabled = true;
-      stopBtn.disabled = false;
-      portInput.disabled = true;
-      protocolSelect.disabled = true;
-      serverStatus.parentElement.style.backgroundColor = '#89d185';
-    } else {
-      startBtn.disabled = false;
-      stopBtn.disabled = true;
-      portInput.disabled = false;
-      protocolSelect.disabled = false;
-      serverStatus.parentElement.style.backgroundColor = 'var(--accent-color)';
+    // listening 상태가 명시적으로 전달된 경우에만 버튼 상태를 변경한다.
+    if (typeof status.listening !== 'undefined') {
+      if (status.listening) {
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+        portInput.disabled = true;
+        protocolSelect.disabled = true;
+        serverStatus.parentElement.style.backgroundColor = '#89d185';
+      } else {
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+        portInput.disabled = false;
+        protocolSelect.disabled = false;
+        serverStatus.parentElement.style.backgroundColor = 'var(--accent-color)';
+      }
     }
   });
 
@@ -115,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sessions.length === 0) {
         const row = sessionTableBody.insertRow();
         const cell = row.insertCell();
-        cell.colSpan = 4;
+        cell.colSpan = 5; // Actions 열이 추가되었으니 5로 변경
         cell.textContent = 'No active sessions... yet!';
         cell.style.textAlign = 'center';
     } else {
@@ -132,6 +135,27 @@ document.addEventListener('DOMContentLoaded', () => {
             row.insertCell().textContent = session.status;
             row.insertCell().textContent = new Date(session.connectedTime).toLocaleTimeString();
             row.insertCell().textContent = `${session.rx} / ${session.tx}`;
+
+            const actionCell = row.insertCell();
+            const disconnectBtn = document.createElement('button');
+            disconnectBtn.textContent = 'Disconnect';
+            disconnectBtn.className = 'small-btn disconnect-btn';
+            disconnectBtn.dataset.sessionId = session.id;
+            
+            // UDP 세션은 서버에서 일방적으로 끊을 수 없으므로 버튼 비활성화
+            if (session.status === 'active') { // 'active'는 UDP 세션
+                disconnectBtn.disabled = true;
+                disconnectBtn.title = 'UDP sessions cannot be disconnected from the server.';
+            }
+
+            disconnectBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // 행 클릭 이벤트 전파 방지
+                const sessionIdToDisconnect = e.target.dataset.sessionId;
+                if (confirm(`Are you sure you want to disconnect session ${sessionIdToDisconnect}?`)) {
+                    window.api.disconnectSession(sessionIdToDisconnect);
+                }
+            });
+            actionCell.appendChild(disconnectBtn);
 
             row.addEventListener('click', () => {
                 const isNewSelection = selectedSessionId !== session.id;
