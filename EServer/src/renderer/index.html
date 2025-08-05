@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Helena's Network Test Server</title>
+  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <div class="server-controls">
+        <h2>Server Controls</h2>
+        <div class="control-group">
+          <label for="protocol-select">Protocol:</label>
+          <select id="protocol-select">
+            <option value="TCP">TCP</option>
+            <option value="UDP" disabled>UDP (coming soon!)</option>
+            <option value="WebSocket" disabled>WebSocket (coming soon!)</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label for="port-input">Port:</label>
+          <input type="number" id="port-input" value="8080">
+        </div>
+        <button id="start-server-btn">Start Server</button>
+        <button id="stop-server-btn" disabled>Stop Server</button>
+      </div>
+    </div>
+    <div class="main-content">
+      <h1>Welcome to Helena's Awesome Network Test Server!</h1>
+      <p>Hmph! It's just a piece of cake for a genius like me!</p>
+    </div>
+  </div>
+  <div class="status-bar">
+    <span id="server-status">Status: Idle</span>
+    <span id="session-count">Sessions: 0</span>
+  </div>
+
+  <!-- 디버깅: 렌더러 스크립트 로드 확인 -->
+  <script>
+    console.log('index.html loaded. Loading renderer.js...');
+  </script>
+  <script src="renderer.js"></script>
+</body>
+</html>
