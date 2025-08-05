@@ -1,7 +1,8 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const net = require('net');
 const dgram = require('dgram');
+const fs = require('fs');
 
 // 디버깅: main.js 로드 확인
 console.log('main.js loaded');
@@ -26,8 +27,7 @@ function createWindow() {
   console.log(`Loading URL: file://${path.join(__dirname, '../renderer/index.html')}`);
   mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
 
-  // 개발자 도구를 열어! 디버깅에 필수지!
-  mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools(); // Hmph! No more debug tools for you!
 
   mainWindow.on('closed', () => {
     // 디버깅: 윈도우 종료 이벤트 확인
@@ -214,4 +214,30 @@ ipcMain.on('send-data', (event, { sessionId, data, encoding }) => {
         console.error('main: Error sending data:', error);
         sendLog({ sessionId: sessionId, direction: 'error', data: `Error sending data: ${error.message}`, timestamp: new Date().toISOString() });
     }
+});
+
+ipcMain.on('export-log', async (event, { sessionId, logContent }) => {
+  console.log(`main: received export-log for ${sessionId}`);
+  const defaultPath = `log_${sessionId.replace(/:/g, '_')}_${new Date().toISOString().replace(/:/g, '-')}.txt`;
+  
+  const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
+    title: 'Export Session Log',
+    defaultPath: defaultPath,
+    filters: [
+      { name: 'Text Files', extensions: ['txt'] },
+      { name: 'All Files', extensions: ['*'] }
+    ]
+  });
+
+  if (!canceled && filePath) {
+    try {
+      fs.writeFileSync(filePath, logContent, 'utf-8');
+      console.log(`main: Log for ${sessionId} exported to ${filePath}`);
+      // 사용자에게 성공 메시지를 보내줄 수도 있어!
+      event.sender.send('server-status', { message: `Log exported to ${filePath}` });
+    } catch (error) {
+      console.error('main: Failed to export log:', error);
+      event.sender.send('server-status', { message: `Error exporting log: ${error.message}` });
+    }
+  }
 });

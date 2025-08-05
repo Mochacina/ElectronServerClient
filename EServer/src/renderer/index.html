@@ -9,8 +9,10 @@
 <body>
   <div class="container">
     <div class="sidebar">
-      <div class="server-controls">
+      <div class="sidebar-header">
         <h2>Server Controls</h2>
+      </div>
+      <div class="server-controls">
         <div class="control-group">
           <label for="protocol-select">Protocol:</label>
           <select id="protocol-select">
@@ -27,49 +29,49 @@
         <button id="stop-server-btn" disabled>Stop Server</button>
       </div>
     </div>
-    <div class="main-content">
-      <div class="session-list-container">
-        <h2>Active Sessions</h2>
-        <table id="session-list-table">
-          <thead>
-            <tr>
-              <th>Session ID</th>
-              <th>Status</th>
-              <th>Connected Time</th>
-              <th>Rx/Tx Bytes</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Session rows will be inserted here -->
-          </tbody>
-        </table>
-      </div>
-      <div class="session-detail-container">
-        <h2>Session Detail</h2>
-        <div id="session-detail-content" class="placeholder">
-          <p>Select a session to see details.</p>
+    <button id="sidebar-fold-btn" title="Fold/Unfold Sidebar">◀</button>
+    <div class="resizer" id="resizer"></div>
+    <div class="main-content-wrapper">
+        <div class="session-list-container">
+            <h2>Active Sessions</h2>
+            <table id="session-list-table">
+              <thead>
+                <tr>
+                  <th>Session ID</th>
+                  <th>Status</th>
+                  <th>Connected Time</th>
+                  <th>Rx/Tx Bytes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Session rows will be inserted here -->
+              </tbody>
+            </table>
         </div>
-        <div id="session-detail-view" class="hidden">
-          <div class="detail-info">
-            <strong>ID:</strong> <span id="detail-session-id"></span>
-            <button id="export-log-btn" class="small-btn">Export Log</button>
-          </div>
-          <div class="data-log-container">
-            <pre id="data-log"></pre>
-          </div>
-          <div class="data-send-container">
-            <textarea id="data-input" placeholder="Enter data to send..."></textarea>
-            <div class="send-controls">
-              <select id="encoding-select">
-                <option value="utf8">UTF-8</option>
-                <option value="hex">Hex</option>
-                <option value="base64">Base64</option>
-              </select>
-              <button id="send-data-btn">Send</button>
+        <div class="session-detail-container hidden">
+            <div class="detail-header">
+                <h2>Session Detail</h2>
+                <button id="close-detail-btn" title="Close Detail View">✖</button>
             </div>
-          </div>
+            <div class="detail-info">
+                <strong>ID:</strong> <span id="detail-session-id"></span>
+                <button id="export-log-btn" class="small-btn">Export Log</button>
+            </div>
+            <div class="data-log-container">
+                <pre id="data-log"></pre>
+            </div>
+            <div class="data-send-container">
+                <textarea id="data-input" placeholder="Enter data to send..."></textarea>
+                <div class="send-controls">
+                <select id="encoding-select">
+                    <option value="utf8">UTF-8</option>
+                    <option value="hex">Hex</option>
+                    <option value="base64">Base64</option>
+                </select>
+                <button id="send-data-btn">Send</button>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
   </div>
   <div class="status-bar">
