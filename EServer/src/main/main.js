@@ -28,7 +28,7 @@ function createWindow() {
   console.log(`Loading URL: file://${path.join(__dirname, '../renderer/index.html')}`);
   mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
 
-  mainWindow.webContents.openDevTools(); // Hmph! No more debug tools for you!
+  // mainWindow.webContents.openDevTools();
 
   mainWindow.on('closed', () => {
     // 디버깅: 윈도우 종료 이벤트 확인
