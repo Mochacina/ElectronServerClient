@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Element Selectors ---
   const sidebar = document.querySelector('.sidebar');
-  const resizer = document.getElementById('resizer');
+  // const resizer = document.getElementById('resizer'); // No longer resizing sidebar
   const foldBtn = document.getElementById('sidebar-fold-btn');
   const mainContentWrapper = document.querySelector('.main-content-wrapper');
   
@@ -23,6 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const serverStatus = document.getElementById('server-status');
   const sessionCount = document.getElementById('session-count');
   const sessionTableBody = document.querySelector('#session-list-table tbody');
+  const sessionListContainer = document.querySelector('.session-list-container');
+  const panelResizer = document.getElementById('panel-resizer');
   
   const sessionDetailContainer = document.querySelector('.session-detail-container');
   const detailSessionId = document.getElementById('detail-session-id');
@@ -68,27 +70,45 @@ document.addEventListener('DOMContentLoaded', () => {
     updateDetailView(false);
   });
 
-  // --- Sidebar Resize & Fold Logic ---
-  resizer.addEventListener('mousedown', (e) => {
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-    });
-  });
+  // --- Sidebar & Panel Logic ---
+  // Sidebar resize logic is now disabled.
+  // resizer.addEventListener('mousedown', (e) => {
+  //   document.addEventListener('mousemove', handleMouseMove);
+  //   document.addEventListener('mouseup', () => {
+  //     document.removeEventListener('mousemove', handleMouseMove);
+  //   });
+  // });
 
-  function handleMouseMove(e) {
-    const newWidth = e.clientX;
-    // 사이드바가 접혀있을 때는 리사이즈 안함
-    if (sidebar.classList.contains('folded')) return;
-    
-    if (newWidth >= 150 && newWidth < 500) {
-      sidebar.style.width = `${newWidth}px`;
-    }
-  }
+  // function handleMouseMove(e) {
+  //   const newWidth = e.clientX;
+  //   if (sidebar.classList.contains('folded')) return;
+  //   if (newWidth >= 150 && newWidth < 500) {
+  //     sidebar.style.width = `${newWidth}px`;
+  //   }
+  // }
 
   foldBtn.addEventListener('click', () => {
     sidebar.classList.toggle('folded');
   });
+
+  // New Panel Resize Logic
+  panelResizer.addEventListener('mousedown', (e) => {
+    document.addEventListener('mousemove', handlePanelMouseMove);
+    document.addEventListener('mouseup', () => {
+      document.removeEventListener('mousemove', handlePanelMouseMove);
+    });
+  });
+
+  function handlePanelMouseMove(e) {
+    // The new width is the distance from the left of the sidebar to the mouse position
+    const newWidth = e.clientX - sidebar.offsetWidth;
+    const mainContentWidth = mainContentWrapper.offsetWidth;
+    
+    // Set boundaries for resizing
+    if (newWidth > 200 && newWidth < mainContentWidth - 200) {
+      sessionListContainer.style.width = `${newWidth}px`;
+    }
+  }
 
   // --- IPC Handlers ---
   window.api.onServerStatus((status) => {

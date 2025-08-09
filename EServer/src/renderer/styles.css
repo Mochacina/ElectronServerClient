@@ -25,7 +25,7 @@ body, html {
 /* --- Sidebar & Resizer --- */
 .sidebar {
   width: 250px;
-  min-width: 150px;
+  min-width: 250px; /* Fixed width for now */
   background-color: var(--sidebar-bg);
   padding: 20px;
   border-right: 1px solid var(--border-color);
@@ -125,7 +125,7 @@ body, html {
 .server-controls button:hover { background-color: #005a9e; }
 .server-controls button:disabled { background-color: #555; cursor: not-allowed; }
 
-.resizer {
+#panel-resizer {
   width: 5px;
   background: transparent;
   cursor: col-resize;
@@ -133,27 +133,37 @@ body, html {
   transition: background-color 0.2s;
   z-index: 99;
 }
-.resizer:hover { background: var(--accent-color); }
-.sidebar.folded + .resizer { display: none; }
+#panel-resizer:hover { background: var(--accent-color); }
+/* Hide resizer when detail view is not active */
+.session-detail-container.hidden + #panel-resizer,
+.session-detail-container.hidden {
+    display: none !important;
+}
 
 /* --- Main Content --- */
 .main-content-wrapper {
     flex-grow: 1;
     display: flex;
     padding: 20px;
+    padding-right: 10px;
     overflow: hidden;
     transition: margin-left 0.3s ease; /* 부드러운 여백 전환 */
 }
 
 /* 사이드바가 접혔을 때 메인 콘텐츠에 여백 추가 */
+/* This is no longer needed */
+/*
 .sidebar.folded + .resizer + .main-content-wrapper {
-    margin-left: 5px; /* 버튼 너비와 동일 */
+    margin-left: 5px;
 }
+*/
 
 .session-list-container {
     width: 100%;
     height: 100%;
     display: flex;
+    padding-left: 5px;
+    padding-right: 5px;
     flex-direction: column;
     transition: width 0.3s;
 }
@@ -167,13 +177,12 @@ body, html {
 .main-content-wrapper.detail-view-active .session-list-container {
     width: 40%;
     min-width: 200px;
-    padding-right: 10px;
-    border-right: 1px solid var(--border-color);
+    /* border is now on the resizer essentially */
 }
 
 .session-detail-container {
     width: 60%;
-    padding-left: 10px;
+    padding-left: 5px;
     display: flex;
     flex-direction: column;
 }
