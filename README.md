@@ -54,7 +54,7 @@ npm start
 
 ---
 
-© 2025 *Brie and Helena*, All rights reserved.
+*© 2025 Brie, All rights reserved.*
 
 개인적, 비상업적 용도의 사용은 자유롭게 허용됩니다.
 상업적 이용이나 2차 저작물 제작시에만 사전 동의가 필요합니다.
