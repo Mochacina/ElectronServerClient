@@ -5,6 +5,7 @@ console.log("Yes! I am the one and only Helena's renderer.js!");
 console.log('Renderer process is running.');
 
 let selectedSessionId = null;
+let lastPanelWidth = null; // 마지막으로 조절된 패널 너비를 저장할 변수
 
 document.addEventListener('DOMContentLoaded', () => {
   // 디버깅: DOMContentLoaded 이벤트 확인
@@ -93,8 +94,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // New Panel Resize Logic
   panelResizer.addEventListener('mousedown', (e) => {
+    document.body.classList.add('is-resizing');
     document.addEventListener('mousemove', handlePanelMouseMove);
     document.addEventListener('mouseup', () => {
+      document.body.classList.remove('is-resizing');
       document.removeEventListener('mousemove', handlePanelMouseMove);
     });
   });
@@ -107,6 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Set boundaries for resizing
     if (newWidth > 200 && newWidth < mainContentWidth - 200) {
       sessionListContainer.style.width = `${newWidth}px`;
+      lastPanelWidth = newWidth; // 너비를 변수에 저장
     }
   }
 
@@ -246,6 +250,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateDetailView(show, options = {}) {
     const { stats = null } = options;
     if (show) {
+        // 상세 뷰를 열 때 저장된 너비가 있으면 복원한다.
+        if (lastPanelWidth) {
+            sessionListContainer.style.width = `${lastPanelWidth}px`;
+        }
         mainContentWrapper.classList.add('detail-view-active');
         sessionDetailContainer.classList.remove('hidden');
         detailSessionId.textContent = selectedSessionId;
@@ -264,6 +272,8 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         mainContentWrapper.classList.remove('detail-view-active');
         sessionDetailContainer.classList.add('hidden');
+        // 상세 뷰가 닫힐 때 세션 리스트 컨테이너의 너비를 초기화한다.
+        sessionListContainer.style.width = '';
     }
   }
 

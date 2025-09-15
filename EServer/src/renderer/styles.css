@@ -165,7 +165,12 @@ body, html {
     padding-left: 5px;
     padding-right: 5px;
     flex-direction: column;
-    transition: width 0.3s;
+    transition: width 0.3s ease;
+}
+
+/* 리사이징 중에는 transition 효과를 제거하여 부드러운 조작감을 제공한다. */
+body.is-resizing .session-list-container {
+    transition: none;
 }
 
 .session-list-container h2 {
