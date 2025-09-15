@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
             row.insertCell().textContent = session.id;
             row.insertCell().textContent = session.status;
             row.insertCell().textContent = new Date(session.connectedTime).toLocaleTimeString();
-            row.insertCell().textContent = `${session.rx} / ${session.tx}`;
+            row.insertCell().textContent = `${session.tx} / ${session.rx}`;
 
             const actionCell = row.insertCell();
             const disconnectBtn = document.createElement('button');
@@ -198,7 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     selectedSessionId = session.id;
                     row.classList.add('selected');
-                    updateDetailView(true, { stats: { rx: session.rx, tx: session.tx } });
+                    updateDetailView(true, { stats: { tx: session.tx, rx: session.rx } });
                 }
             });
         });
@@ -237,12 +237,12 @@ document.addEventListener('DOMContentLoaded', () => {
       // RX/TX 셀은 4번째(인덱스 3) 셀이야.
       const statsCell = sessionRow.cells[3];
       if (statsCell) {
-        statsCell.textContent = `${stats.rx} / ${stats.tx}`;
+        statsCell.textContent = `${stats.tx} / ${stats.rx}`;
       }
     }
     // 상세 뷰의 통계도 업데이트
     if (stats.id === selectedSessionId) {
-      detailSessionStats.textContent = `${stats.rx} / ${stats.tx}`;
+      detailSessionStats.textContent = `${stats.tx} / ${stats.rx}`;
     }
   });
 
@@ -259,7 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
         detailSessionId.textContent = selectedSessionId;
         
         if (stats) {
-          detailSessionStats.textContent = `${stats.rx} / ${stats.tx}`;
+          detailSessionStats.textContent = `${stats.tx} / ${stats.rx}`;
         } else {
           // stats가 없으면 테이블에서 직접 찾아서 설정
           const sessionRow = sessionTableBody.querySelector(`tr[data-session-id="${selectedSessionId}"]`);

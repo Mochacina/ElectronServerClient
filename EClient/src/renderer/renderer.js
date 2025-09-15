@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.api.onStatsUpdate((stats) => {
     console.log('Stats updated:', stats);
-    statsEl.textContent = `${stats.rx} / ${stats.tx}`;
+    statsEl.textContent = `${stats.tx} / ${stats.rx}`;
   });
 
 });
