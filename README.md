@@ -2,6 +2,9 @@
 
 이 프로젝트는 Electron과 Node.js를 기반으로 제작된 TCP/UDP 네트워크 테스트 도구입니다. 서버 역할을 하는 `EServer`와 클라이언트 역할을 하는 `EClient` 두 개의 애플리케이션으로 구성되어 있습니다.
 
+![EServer](EServer_image_001.png)
+![EClient](EClient_image_001.png)
+
 ## 주요 기능
 
 ### EServer
